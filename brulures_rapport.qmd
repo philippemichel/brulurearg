@@ -1,0 +1,249 @@
+---
+title: "Brûlures de l'enfant"
+subtitle: "Rapport Statistique -- V1.0"
+author: 
+  - name: "Dr Philippe MICHEL"
+    affiliations:
+      name: "Hôpital NOVO"
+      department: "Unité de Soutien à la Recherche Clinique"
+format: 
+ titlepage-pdf:
+  titlepage: bg-image
+  titlepage-bg-image: "novo_usrc.png"
+  logo-space-after: "0\\baselineskip"
+  documentclass: scrreprt
+  classoption: ["oneside", "open=any, french"]
+  number-sections: true
+  titlepage-footer: "- **Mélanie DOS SANTOS** Service de Pédiatrie -- Hôpital Victor Dupouy (Argenteuil)\\newline \\newline Brûlures accidentelles chez le jeune enfant\\newline Étude monocentrique\\newline \\today"
+titlepage-theme:
+  title-fontstyle: ["Huge", "bfseries"]
+  title-color: novo
+  subtitle-color: novo
+  subtitle-fontstyle: ["huge"]
+  logo-size: "0.2\\textheight"
+  vrule-width: "0.1cm"
+  vrule-color: novo
+include-in-header:
+   text: |
+    \definecolor{novo}{HTML}{27484b}
+    \usepackage{siunitx}
+    \mathcode`\.="013B 
+jss-pdf:
+  keep-tex: true  
+pdf-engine: lualatex
+keep-tex: true
+number-sections: true
+toc: true
+lof: true
+lot: true
+mainfont: Faune
+mainfontoptions:
+ - Numbers=OldStyle
+ - Ligatures=TeX
+sansfont: Myriad Pro
+sansfontoptions:
+ - Ligatures=TeX
+fig-cap-location: bottom
+tbl-cap-location: top
+classoption: [french]
+papersize: a4paper
+editor: source
+bibliography: stat.bib
+cite-method: biblatex
+csl: jama.csl
+#reference-location: margin
+#citation-location: margin
+license: "CC BY-SA"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, cache = FALSE) 
+expx <- FALSE
+classeur <- "brulures.xls"
+```
+
+```{r}
+#| label: lib
+
+library(baseph)
+library(readODS)
+library(janitor)
+library(corrplot)
+library(tidyverse)
+library(lubridate)
+library(labelled)
+library(kableExtra)
+library(forestmodel)
+library(epiDisplay)
+library(confintr)
+library(missMDA)
+library(colorspace)
+library(visdat)
+library(gtsummary)
+library(FactoMineR)
+library(factoextra)
+```
+
+```{r}
+#| label: import
+#| cache: true
+rm(tt)
+
+bnom <- read_csv2("datas/bnom.csv")
+bnom <- bnom$nom
+
+nax <- c("NA","na","NR","","A","K", "Non disponible")
+tt <- read_csv2("datas/brul.csv",na = nax) |> 
+ mutate_if(is.character, as.factor) |>
+ janitor::clean_names() |> 
+  select(- ou)
+var_label(tt) <- bnom 
+
+## Réordonnancement de tt$recode_nbenfants
+tt$recode_nbenfants <- tt$recode_nbenfants %>%
+  fct_relevel(
+    "Unique", "Deux", "Nombreuse"
+  )
+
+## Réordonnancement de tt$niveau_etude
+tt$niveau_etude <- tt$niveau_etude %>%
+  fct_relevel(
+    "Primaire/secondaire", "CAP/BEP", "BAC", "BAC+2", "ETUDES SUPERIEURES"
+  )
+
+
+## Réordonnancement de tt$recode_sante
+tt$recode_sante <- tt$recode_sante %>%
+  fct_relevel(
+    "Parents foyer", "autres professions", "sante education"
+  )
+
+# Cause
+
+tt <- tt |> 
+mutate(causex = if_else(str_detect(cause_frequente_brulure ,"3"),"correct", "faux")) |> 
+mutate(lieux = if_else(str_detect(lieu_le_plus_frequent ,"2"),"correct", "faux")) |>
+mutate(partiex = if_else(str_detect(partie_du_corps ,"2"),"correct", "faux")) |> 
+mutate(fairex = if_else(str_detect(premiere_chose_a_faire ,"1"),"correct", "faux"))  
+var_label(tt$causex) <- "Connaissance cause la plus fréquente"
+var_label(tt$lieux) <- "Connaissance lieu le plus fréquent"
+var_label(tt$partiex) <- "Connaissance partie du corps la plus touchée"
+var_label(tt$fairex) <- "Connaissance premiere chose à faire"
+```
+
+# Qualité des données
+
+Le cas 255 est supprimé (aucune donnée).
+
+La question portant sur *où les parents ont eu des informations* sur les brûlures contient peu de réponses & est supprimée.
+
+La base comprend donc `r nrow(tt)` cas pour `r ncol(tt)` variables. 
+
+Pour les connaissances des parents, les réponses considérées comme correctes sont : 
+
+- **Cause** En renversant sur lui du thé ou autre liquide chaud posé sur une table 
+- **Lieu** Salon
+- **Partie du corps** Thorax
+- **Première chose à faire** Mettre la zone brûlée 15 min sous l’eau froide 
+
+## Données manquantes
+
+```{r}
+#| label: manq
+#| fig-cap: Données manquantes
+
+tt |> 
+ dplyr::select(-1) |> 
+vis_miss(show_perc_col = TRUE)
+```
+
+
+
+# Description de la population
+
+
+```{r}
+#| label: desc1
+#| tbl-cap: Tableau descriptif
+ 
+# options(OutDec = ",") 
+tt |> 
+ dplyr::select(2:13,17,19:21) |> 
+ tbl_summary(missing = "no") |> 
+  modify_header(label ~ " ") %>%
+ bold_labels() |> 
+ pexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "desc1")
+```
+
+
+# Critère principal
+
+```{r}
+#| label: desc2
+#| tbl-cap: Tableau descriptif - Connaissances
+
+# options(OutDec = ",") 
+tt |> 
+ dplyr::select(17,19:21) |> 
+ tbl_summary(missing = "no") |> 
+  modify_header(label ~ " ") %>%
+ bold_labels() |> 
+ pexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "desc2")
+```
+
+## Selon la profession 
+
+```{r}
+#| label: prof1
+#| tbl-cap: Connaissances selon la profession
+
+tt |> 
+ dplyr::select(8,22:25) |> 
+ tbl_summary(missing = "no", by = recode_sante) |> 
+  modify_header(label ~ " ") %>%
+ bold_labels() |> 
+add_p() |> 
+  bold_p() |> 
+ gexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "prof1")
+```
+
+## Connaissance de la cause
+
+On recherche des facteurs influant la connaissance de la cause
+
+```{r}
+#| label: connais1
+#| tbl-cap: Connaissances de la cause
+
+tt |> 
+ dplyr::select(2:13,19,22) |> 
+ tbl_summary(missing = "no", by = causex) |> 
+  modify_header(label ~ " ") %>%
+ bold_labels() |> 
+add_p() |> 
+  bold_p() |> 
+ gexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "connais1")
+```
+
+```{r}
+#| label: connaismulti
+#| tbl-cap: Connaissances de la cause  - régression
+
+glm(as.factor(causex) ~ age + recode_sante + origine_questionnaire + antecedant_de_brulure, data = tt, family = "binomial") |> 
+  forest_model()
+```
+
+
+Les parents *au foyer*, sans profession ont une moins bonne connaissance. Pas d'autre facteur retrouvé.
+
+## Technique {.appendix}
+  
+
+Les données discrètes ont été présentées en pourcentage puis comparées par un test exact du $\chi^2$. Les données numériques ont été présentées par leur moyenne & l'écart-type puis comparées par le test du t de Student après vérification de l'égalité de variance ou par une anlyse de variance (ANOVA). 
+
+Un modèle de régression logistique a été employé. Ce modèle de régression a été limité aux facteurs associés à la réponse en utilisant les critères ayant une la réponse significative avec un seuil p.value < 0,5 lors de l’étape précédente. Une recherche du meilleur modèle a été réalisée par un step-by-step descendant évaluée par le critère d’information d’Akaike.
+
+Cette étape a été réalisée après imputation des données manquantes mais le résultat final a été calculé sur les données vraies.
+
+L'analyse statistique a été réalisée avec le logiciel **R** [@rstat] & diverses librairies en particulier celles du `tidyverse` [@tidy] & `baseph` [@baseph].
