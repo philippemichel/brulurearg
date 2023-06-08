@@ -510,7 +510,7 @@ tt |>
  bold_labels() |> 
 add_p() |> 
   bold_p() |> 
- gexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "connais1")
+ pexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "connais1")
 ```
 
 ```{r}
@@ -518,19 +518,17 @@ add_p() |>
 #| tbl-cap: Connaissances de la cause  - régression
 
 glm(as.factor(causex) ~ age + recode_sante + origine_questionnaire + antecedant_de_brulure, data = tt, family = "binomial") |> 
-  forest_model()
+  forest_model(factor_separate_line = TRUE)
 ```
 
+ En analyse multivariée (régression logistique) sur les critères étudiés seule la profession de santé semble avoir un impact sur la connaissance du mécanisme des brûlures. Plusieurs critères (niveau d'étude, profession, etc.) sont trop liés pour être mis dans la même analyse ce qui a été vérifié par une recherche de confusion entre ces facteurs qui s'est avérée positive.
 
 Les parents *au foyer*, sans profession ont une moins bonne connaissance. Pas d'autre facteur retrouvé.
 
 ## Technique {.appendix}
-  
 
-Les données discrètes ont été présentées en pourcentage puis comparées par un test exact du $\chi^2$. Les données numériques ont été présentées par leur moyenne & l'écart-type puis comparées par le test du t de Student après vérification de l'égalité de variance ou par une anlyse de variance (ANOVA). 
+Les données discrètes ont été présentées en pourcentage puis comparées par un test exact du $\chi^2$. Les données numériques ont été présentées par leur moyenne & l'écart-type puis comparées par le test du t de Student après vérification de l'égalité de variance ou par une analyse de variance (ANOVA). 
 
-Un modèle de régression logistique a été employé. Ce modèle de régression a été limité aux facteurs associés à la réponse en utilisant les critères ayant une la réponse significative avec un seuil p.value < 0,5 lors de l’étape précédente. Une recherche du meilleur modèle a été réalisée par un step-by-step descendant évaluée par le critère d’information d’Akaike.
-
-Cette étape a été réalisée après imputation des données manquantes mais le résultat final a été calculé sur les données vraies.
+Un modèle de régression logistique a été employé. Ce modèle de régression a été limité aux facteurs associés à la réponse en utilisant les critères ayant une la réponse significative avec un seuil p.value < 0,5 lors de l’étape précédente. Une recherche du meilleur modèle a été réalisée par un step-by-step descendant basé sur le critère d’information d’Akaike. Cette étape a été réalisée après imputation des données manquantes mais le résultat final a été calculé sur les données vraies.
 
 L'analyse statistique a été réalisée avec le logiciel **R** [@rstat] & diverses librairies en particulier celles du `tidyverse` [@tidy] & `baseph` [@baseph].
