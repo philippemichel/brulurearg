@@ -14,7 +14,7 @@ format:
   documentclass: scrreprt
   classoption: ["oneside", "open=any, french"]
   number-sections: true
-  titlepage-footer: "- **Mélanie DOS SANTOS** Service de Pédiatrie -- Hôpital Victor Dupouy (Argenteuil)\\newline \\newline Brûlures accidentelles chez le jeune enfant\\newline Étude monocentrique\\newline \\today"
+  titlepage-footer: "**Mélanie DOS SANTOS** Service de Pédiatrie -- Hôpital Victor Dupouy (Argenteuil)\\newline \\newline Brûlures accidentelles chez le jeune enfant\\newline Étude monocentrique (thèse)\\newline \\today"
 titlepage-theme:
   title-fontstyle: ["Huge", "bfseries"]
   title-color: novo
@@ -176,7 +176,221 @@ tt |>
  pexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "desc1")
 ```
 
+# Connaissances 
 
+On liste les réponse données par les patients en sachant que certains ont donnés plusieurs réponses.
+
+## Mécanisme de l'accident
+
+```{r}
+#| label: causep
+#| tbl-cap: Circonstance la plus fréquente de l'accident
+
+cause <-
+  c(
+    "En posant la main sur une plaque de cuisson...",
+    "Une casserole d’eau bouillante qui était sur le feu",
+    "En renversant sur lui un liquide chaud posé sur une table",
+    "Exposition à des flammes",
+    "En prenant son bain ou sa douche"
+  )
+lc <- length(cause)
+nb <- rep(0, lc)
+for (l in 1:lc) {
+  nb[l] <-
+    if_else(str_detect(tt$cause_frequente_brulure, as.character(l)), 1, 0) |>
+    sum(na.rm = TRUE)
+}
+pc <- round(100*nb/nrow(tt),1)
+zz <- tibble(cause,nb,pc)
+#
+zz |> 
+ kbl(booktabs = TRUE,
+     col.names= c("Cause de l'accident","n","%")) |>
+      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+    if (expx) {
+      zz |>
+        as_tibble() |>
+        write.xlsx(nomfich, sheetName = causep, append = TRUE)
+    }
+```
+
+```{r}
+#| label: lieuf
+#| fig-cap: Circonstance la plus fréquente de l'accident
+
+tit <- "Circonstance la plus fréquente d'une brûlure ?"
+zz |> 
+  mutate(nomsc= str_wrap(cause, width = 30)) |> 
+  ggplot() + 
+  aes(x = fct_reorder(nomsc,pc, .desc = TRUE), y = pc, fill = nomsc) +
+  geom_bar(stat = "identity") +
+      labs(title = tit,
+         y = "%",
+         caption = tit)+
+    theme_light() +
+    scale_fill_discrete_qualitative(palette = "Dynamic") +
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title.x = element_blank(),
+      legend.title = element_blank(),
+      axis.title.y = element_text(
+        size = 12,
+        angle = 0,
+        vjust = .5
+      ),
+      axis.text.x = element_text(
+        size = 12 ,
+        angle = 40,
+        hjust = 1
+      ),
+      axis.text.y = element_text(size = 12),
+      legend.position = "none"
+    )
+```
+
+# Lieu de l'accident
+
+```{r}
+#| label: lieup
+#| tbl-cap: Dans quel lieu surviennent le plus fréquemment les brûlures
+
+cause <-
+  c(
+    "Cuisine",
+    "Salon",
+    "Salle de bain",
+    "Chambre",
+    "Jardin"
+  )
+lc <- length(cause)
+nb <- rep(0, lc)
+for (l in 1:lc) {
+  nb[l] <-
+    if_else(str_detect(tt$lieu_le_plus_frequent, as.character(l)), 1, 0) |>
+    sum(na.rm = TRUE)
+}
+pc <- round(100*nb/nrow(tt),1)
+zz <- tibble(cause,nb,pc)
+#
+zz |> 
+ kbl(booktabs = TRUE,
+     col.names= c("Lieu de l'accident","n","%")) |>
+      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+    if (expx) {
+      zz |>
+        as_tibble() |>
+        write.xlsx(nomfich, sheetName = lieup, append = TRUE)
+    }
+```
+
+```{r}
+#| label: lieuf
+#| fig-cap: Dans quel lieu surviennent le plus fréquemment les brûlures
+
+tit <- "Dans quel lieu surviennent le plus fréquemment les brûlures ?"
+zz |> 
+  ggplot() + 
+  aes(x = fct_reorder(cause,pc, .desc = TRUE), y = pc, fill = cause) +
+  geom_bar(stat = "identity") +
+      labs(title = tit,
+         y = "%",
+         caption = tit)+
+    theme_light() +
+    scale_fill_discrete_qualitative(palette = "Dynamic") +
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title.x = element_blank(),
+      legend.title = element_blank(),
+      axis.title.y = element_text(
+        size = 12,
+        angle = 0,
+        vjust = .5
+      ),
+      axis.text.x = element_text(
+        size = 12 ,
+        angle = 40,
+        hjust = 1
+      ),
+      axis.text.y = element_text(size = 12),
+      legend.position = "none"
+    )
+```
+
+
+## Partie du corps
+
+```{r}
+#| label: partiep
+#| tbl-cap: Quelle partie du corps est la plus fréquemment exposée au risque de brûlure ?
+
+cause <-
+  c(
+    "Visage",
+    "Thorax",
+    "Abdomen",
+    "Membres supérieurs",
+    "Organes génitaux externes",
+    "Cuisses",
+    "Pieds"
+  )
+lc <- length(cause)
+nb <- rep(0, lc)
+for (l in 1:lc) {
+  nb[l] <-
+    if_else(str_detect(tt$partie_du_corps, as.character(l)), 1, 0) |>
+    sum(na.rm = TRUE)
+}
+pc <- round(100*nb/nrow(tt),1)
+zz <- tibble(cause,nb,pc)
+#
+zz |> 
+ kbl(booktabs = TRUE,
+     col.names= c("partie_du_corps","n","%")) |>
+      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+    if (expx) {
+      zz |>
+        as_tibble() |>
+        write.xlsx(nomfich, sheetName = lieup, append = TRUE)
+    }
+```
+
+
+```{r}
+#| label: partief
+#| fig-cap: Quelle partie du corps est la plus fréquemment exposée au risque de brûlure ?
+
+tit <- "Quelle partie du corps est la plus fréquemment exposée au risque de brûlure ?"
+zz |> 
+  ggplot() + 
+  aes(x = fct_reorder(cause,pc, .desc = TRUE), y = pc, fill = cause) +
+  geom_bar(stat = "identity") +
+      labs(title = tit,
+         y = "%",
+         caption = tit)+
+    theme_light() +
+    scale_fill_discrete_qualitative(palette = "Dynamic") +
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title.x = element_blank(),
+      legend.title = element_blank(),
+      axis.title.y = element_text(
+        size = 12,
+        angle = 0,
+        vjust = .5
+      ),
+      axis.text.x = element_text(
+        size = 12 ,
+        angle = 40,
+        hjust = 1
+      ),
+      axis.text.y = element_text(size = 12),
+      legend.position = "none"
+    )
+```
 # Critère principal
 
 ```{r}
