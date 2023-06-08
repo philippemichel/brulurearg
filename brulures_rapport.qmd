@@ -1,6 +1,7 @@
 ---
 title: "Brûlures de l'enfant"
 subtitle: "Rapport Statistique -- V1.0"
+lang: fr
 author: 
   - name: "Dr Philippe MICHEL"
     affiliations:
@@ -28,6 +29,7 @@ include-in-header:
     \definecolor{novo}{HTML}{27484b}
     \usepackage{siunitx}
     \mathcode`\.="013B 
+df-print : kable
 jss-pdf:
   keep-tex: true  
 pdf-engine: lualatex
@@ -38,11 +40,11 @@ lof: true
 lot: true
 mainfont: Faune
 mainfontoptions:
- - Numbers=OldStyle
- - Ligatures=TeX
+  - Numbers=OldStyle
+  - Ligatures=TeX
 sansfont: Myriad Pro
 sansfontoptions:
- - Ligatures=TeX
+  - Ligatures=TeX
 fig-cap-location: bottom
 tbl-cap-location: top
 classoption: [french]
@@ -53,15 +55,17 @@ cite-method: biblatex
 csl: jama.csl
 #reference-location: margin
 #citation-location: margin
-license: "CC BY-SA"
+license: "MIT"
+echo: false
+warning: false
+message: false
+cache: false
 ---
 
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, cache = FALSE) 
 expx <- FALSE
 classeur <- "brulures.xls"
-```
+``` 
 
 ```{r}
 #| label: lib
@@ -87,7 +91,7 @@ library(factoextra)
 
 ```{r}
 #| label: import
-#| cache: true
+
 rm(tt)
 
 bnom <- read_csv2("datas/bnom.csv")
@@ -129,7 +133,7 @@ mutate(fairex = if_else(str_detect(premiere_chose_a_faire ,"1"),"correct", "faux
 var_label(tt$causex) <- "Connaissance cause la plus fréquente"
 var_label(tt$lieux) <- "Connaissance lieu le plus fréquent"
 var_label(tt$partiex) <- "Connaissance partie du corps la plus touchée"
-var_label(tt$fairex) <- "Connaissance premiere chose à faire"
+var_label(tt$fairex) <- "Connaissance première chose à faire"
 ```
 
 # Qualité des données
@@ -152,7 +156,7 @@ Pour les connaissances des parents, les réponses considérées comme correctes 
 ```{r}
 #| label: manq
 #| fig-cap: Données manquantes
-
+#|
 tt |> 
  dplyr::select(-1) |> 
 vis_miss(show_perc_col = TRUE)
@@ -207,7 +211,7 @@ zz <- tibble(cause,nb,pc)
 zz |> 
  kbl(booktabs = TRUE,
      col.names= c("Cause de l'accident","n","%")) |>
-      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+      kable_styling(latex_options = c("HOLD_position"))
     if (expx) {
       zz |>
         as_tibble() |>
@@ -216,12 +220,13 @@ zz |>
 ```
 
 ```{r}
-#| label: lieuf
+#| label: causef
 #| fig-cap: Circonstance la plus fréquente de l'accident
+#| fig-asp: 1
 
 tit <- "Circonstance la plus fréquente d'une brûlure ?"
 zz |> 
-  mutate(nomsc= str_wrap(cause, width = 30)) |> 
+  mutate(nomsc= str_wrap(cause, width = 25)) |> 
   ggplot() + 
   aes(x = fct_reorder(nomsc,pc, .desc = TRUE), y = pc, fill = nomsc) +
   geom_bar(stat = "identity") +
@@ -242,7 +247,7 @@ zz |>
       ),
       axis.text.x = element_text(
         size = 12 ,
-        angle = 40,
+        angle = 70,
         hjust = 1
       ),
       axis.text.y = element_text(size = 12),
@@ -250,7 +255,7 @@ zz |>
     )
 ```
 
-# Lieu de l'accident
+## Lieu de l'accident
 
 ```{r}
 #| label: lieup
@@ -277,7 +282,7 @@ zz <- tibble(cause,nb,pc)
 zz |> 
  kbl(booktabs = TRUE,
      col.names= c("Lieu de l'accident","n","%")) |>
-      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+      kable_styling(latex_options = c("HOLD_position"))
     if (expx) {
       zz |>
         as_tibble() |>
@@ -288,6 +293,7 @@ zz |>
 ```{r}
 #| label: lieuf
 #| fig-cap: Dans quel lieu surviennent le plus fréquemment les brûlures
+#| fig-asp: 1
 
 tit <- "Dans quel lieu surviennent le plus fréquemment les brûlures ?"
 zz |> 
@@ -300,7 +306,7 @@ zz |>
     theme_light() +
     scale_fill_discrete_qualitative(palette = "Dynamic") +
     theme(
-      plot.title = element_text(size = 16, face = "bold"),
+      plot.title = element_text(size = 14, face = "bold"),
       plot.subtitle = element_text(size = 12),
       axis.title.x = element_blank(),
       legend.title = element_blank(),
@@ -348,8 +354,8 @@ zz <- tibble(cause,nb,pc)
 #
 zz |> 
  kbl(booktabs = TRUE,
-     col.names= c("partie_du_corps","n","%")) |>
-      kable_styling(latex_options = c("HOLD_position", "scale_down"))
+     col.names= c("Partie du corps","n","%")) |>
+      kable_styling(latex_options = c("HOLD_position"))
     if (expx) {
       zz |>
         as_tibble() |>
@@ -361,6 +367,7 @@ zz |>
 ```{r}
 #| label: partief
 #| fig-cap: Quelle partie du corps est la plus fréquemment exposée au risque de brûlure ?
+#| fig-asp: 1
 
 tit <- "Quelle partie du corps est la plus fréquemment exposée au risque de brûlure ?"
 zz |> 
@@ -384,22 +391,22 @@ zz |>
       ),
       axis.text.x = element_text(
         size = 12 ,
-        angle = 40,
+        angle = 50,
         hjust = 1
       ),
       axis.text.y = element_text(size = 12),
       legend.position = "none"
     )
 ```
+
 # Critère principal
 
 ```{r}
 #| label: desc2
 #| tbl-cap: Tableau descriptif - Connaissances
 
-# options(OutDec = ",") 
 tt |> 
- dplyr::select(17,19:21) |> 
+ dplyr::select(22:25) |> 
  tbl_summary(missing = "no") |> 
   modify_header(label ~ " ") %>%
  bold_labels() |> 
@@ -421,6 +428,72 @@ add_p() |>
   bold_p() |> 
  gexptabph(lg = FALSE, exp = expx, nomfich = classeur, nomsheet = "prof1")
 ```
+
+```{r}
+#| label: figconn1
+#| fig-cap: Connaissances selon la profession
+#| fig-asp: 1
+
+tit = "Connaissance selon la profession"
+tabz <- NULL
+llt <-  c("cause", "lieu","partie","afaire")
+for (l in 22:25){
+  zz <- prop.table(table(tt$recode_sante,pull(tt[,l])),1)
+  zz <- zz
+   zz <- c(llt[l-21], zz[,1])
+tabz <- rbind(tabz,zz)
+}
+as.tibble(tabz) |>
+  pivot_longer(2:4) |> 
+  mutate(name <- as.factor(name)) |>
+  mutate(name = fct_relevel(name,"Parents foyer", "autres professions", "sante education")) |> 
+  mutate(V1 = fct_relevel(V1,"cause", "lieu", "partie", "afaire")) |> 
+  ggplot() +
+  aes (x = V1, y = as.numeric(value)*100, fill = name) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = tit,
+       y = "%",
+       caption = tit) +
+  theme_light() +
+  scale_fill_discrete_qualitative(palette = "Dynamic") +
+  scale_y_continuous(limits = c(0,110)) +
+  scale_x_discrete(labels = c("Cause", "Lieu", "Partie du corps", "À faire")) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.title.x = element_blank(),
+    legend.title = element_blank(),
+    axis.title.y = element_text(
+      size = 12,
+      angle = 0,
+      vjust = .5
+    ),
+    axis.text.x = element_text(
+      size = 12 ,
+      angle = 50,
+      hjust = 1
+    ),
+    axis.text.y = element_text(size = 12),
+    legend.position = "top"
+  )  +
+      geom_segment(x=0.75, xend=1.25, y=70, yend=70, col="black") + 
+    geom_segment(x=0.75, xend=0.75, y=70, yend=67, col="black") + 
+    geom_segment(x=1.25, xend=1.25, y=70, yend=67, col="black")  +
+    annotate("text", x = 1, y = 75, label = "p = 0,03") +
+      geom_segment(x=1.75, xend=2.25, y=50, yend=50, col="black") + 
+    geom_segment(x=1.75, xend=1.75, y=50, yend=47, col="black") + 
+    geom_segment(x=2.25, xend=2.25, y=50, yend=47, col="black")  +
+    annotate("text", x = 2, y = 60, label = "p = 0,2") +
+      geom_segment(x=2.75, xend=3.25, y=50, yend=50, col="black") + 
+    geom_segment(x=2.75, xend=2.75, y=50, yend=47, col="black") + 
+    geom_segment(x=3.25, xend=3.25, y=50, yend=47, col="black")  +
+    annotate("text", x = 3, y = 60, label = "p = 0,2") +
+    geom_segment(x=3.75, xend=4.25, y=80, yend=80, col="black") + 
+    geom_segment(x=3.75, xend=3.75, y=80, yend=77, col="black") + 
+    geom_segment(x=4.25, xend=4.25, y=80, yend=77, col="black")  +
+    annotate("text", x = 4, y = 90, label = "p <0,001")
+```
+
 
 ## Connaissance de la cause
 
